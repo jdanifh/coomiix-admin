@@ -1,0 +1,306 @@
+openapi: 3.0.3
+info:
+  title: Admin API
+  description: api for manage resoureces
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: local
+tags:
+  - name: players
+    description: Operations related to players
+paths:
+  /players:
+    post:
+      tags:
+        - players
+      summary: new player
+      description: create a new player
+      operationId: createPlayer
+      requestBody:
+        required: true
+        content:
+          application/json; charset=utf-8:
+            schema:
+              $ref: '#/components/schemas/PlayerRequest'
+      responses:
+        '201':
+          description: player created
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/PlayerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+    get:
+      tags:
+        - players
+      summary: search players
+      description: search for players using filter
+      operationId: searchPlayers
+      parameters:
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: filter by player name (contains)
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: filter by player email (exact match)
+        - name: class_type
+          in: query
+          schema:
+            type: string
+          description: filter by player class type (exact match)
+      responses:
+        '200':
+          description: paginated list of players
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/PlayerPage'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+  /players/{id}:
+    get:
+      tags:
+        - players
+      summary: get player by id
+      description: retrieve a player by its unique identifier
+      operationId: getPlayerById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: unique identifier of the player
+      responses:
+        '200':
+          description: player found
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/PlayerResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+    put:
+      tags:
+        - players
+      summary: update player
+      description: update an existing player's information
+      operationId: updatePlayer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: unique identifier of the player to update
+      requestBody:
+        required: true
+        content:
+          application/json; charset=utf-8:
+            schema:
+              $ref: '#/components/schemas/PlayerRequest'
+      responses:
+        '200':
+          description: player updated
+          content:
+            application/json; charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/PlayerResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - players
+      summary: delete player
+      description: delete a player by its unique identifier
+      operationId: deletePlayer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: unique identifier of the player to delete
+      responses:
+        '204':
+          description: player deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    PlayerRequest:
+      type: object
+      required:
+        - name
+        - email
+        - class_type
+      properties:
+        name:
+          type: string
+          example: David Jones
+        email:
+          type: string
+          format: email
+          example: david.jones@example.com
+        class_type:
+          type: string
+          example: Swordman
+    PlayerResponse:
+      type: object
+      required:
+        - id
+        - name
+        - class_type
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          example: 68c157e802a70855fa8b95dc
+        name:
+          type: string
+          example: David Jones
+        email:
+          type: string
+          format: email
+          example: david.jones@example.com
+        class_type:
+          type: string
+          example: Swordman
+        level:
+          type: integer
+          example: 5
+        experience_points:
+          type: long
+          example: 1500
+        health_points:
+          type: long
+          example: 300
+        mana_points:
+          type: long
+          example: 100
+        strength:
+          type: long
+          example: 50
+        defense:
+          type: long
+          example: 30
+        agility:
+          type: long
+          example: 20
+        intelligence:
+          type: long
+          example: 25
+        magic_resistance:
+          type: long
+          example: 15
+        created_at:
+          type: string
+          format: date-time
+          example: "2024-10-01T12:34:56Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2024-10-01T12:34:56Z"
+    PlayerPage:
+      type: object
+      required:
+        - content
+        - page
+        - size
+        - total_elements
+        - total_pages
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlayerResponse'
+        page:
+          type: integer
+          example: 0
+        size:
+          type: integer
+          example: 10
+        total_elements:
+          type: integer
+          example: 50
+        total_pages:
+          type: integer
+          example: 5
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+
+  parameters:
+    page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      description: page number (0-based)
+    size:
+      in: query
+      name: size
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+        maximum: 100
+      description: number of items per page
+    sort:
+      in: query
+      name: sort
+      schema:
+        type: string
+        example: name,asc
+        default: id,asc
+      description: sorting criteria in the format property,(asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
+
+  responses:
+    NotFound:
+      description: Not Found
+      content:
+        application/json; charset=UTF-8:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json; charset=UTF-8:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json; charset=UTF-8:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

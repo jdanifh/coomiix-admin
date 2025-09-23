@@ -1,0 +1,21 @@
+experimental:
+  plugins:
+    oidc:
+      moduleName: "github.com/sevensolutions/traefik-oidc-auth"
+      version: "v0.14.0"
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false
+  file:
+    filename: /etc/traefik/oidc-middleware.yml
+    watch: true
+
+# Optional: Enable dashboard
+api:
+  dashboard: true

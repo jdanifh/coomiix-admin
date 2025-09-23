@@ -1,0 +1,12 @@
+http:
+  middlewares:
+    oidc-auth:
+      plugin:
+        oidc:
+          LogLevel: "DEBUG"
+          Secret: "${TRAEFIK_SECRET}"
+          Provider:
+            Url: "${KEYCLOAK_URL}"
+            ClientId: "${KEYCLOAK_CLIENT_ID}"
+            ClientSecret: "${KEYCLOAK_CLIENT_SECRET}"
+          Scopes: ["openid", "profile", "email"] 
