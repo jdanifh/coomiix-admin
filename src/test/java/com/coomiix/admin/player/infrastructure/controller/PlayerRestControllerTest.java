@@ -33,7 +33,7 @@ class PlayerRestControllerTest extends TestContainerTest {
         request.setEmail("david.jones@example.com");
         request.setClassType("Mage");
 
-        mockMvc.perform(post("/players").with(csrf())
+        mockMvc.perform(post("/api/v1/players").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -54,7 +54,7 @@ class PlayerRestControllerTest extends TestContainerTest {
         request.setEmail("not-an-email");
         request.setClassType("Mage");
 
-        mockMvc.perform(post("/players").with(csrf())
+        mockMvc.perform(post("/api/v1/players").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -70,7 +70,7 @@ class PlayerRestControllerTest extends TestContainerTest {
         request.setEmail("");
         request.setClassType("Mage");
 
-        mockMvc.perform(post("/players").with(csrf())
+        mockMvc.perform(post("/api/v1/players").with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())

@@ -10,7 +10,7 @@ tags:
   - name: players
     description: Operations related to players
 paths:
-  /players:
+  /api/v1/players:
     post:
       tags:
         - players
@@ -69,7 +69,7 @@ paths:
         default:
           $ref: '#/components/responses/InternalServerError'
 
-  /players/{id}:
+  /api/v1/players/{id}:
     get:
       tags:
         - players
