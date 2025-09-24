@@ -10,6 +10,8 @@ import com.coomiix.admin.model.PlayerRequest;
 import com.coomiix.admin.model.PlayerResponse;
 import com.coomiix.admin.player.application.create.CreatePlayerCommand;
 import com.coomiix.admin.player.application.create.CreatePlayerService;
+import com.coomiix.admin.player.application.update.UpdatePlayerCommand;
+import com.coomiix.admin.player.application.update.UpdatePlayerService;
 import com.coomiix.admin.player.domain.Player;
 
 import jakarta.validation.Valid;
@@ -24,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PlayerRestController implements PlayersApi {
 
     private final CreatePlayerService createPlayerService;
+    private final UpdatePlayerService updatePlayerService;
 
     @Override
     public ResponseEntity<PlayerResponse> createPlayer(@Valid PlayerRequest playerRequest) {
@@ -55,8 +58,11 @@ public class PlayerRestController implements PlayersApi {
 
     @Override
     public ResponseEntity<PlayerResponse> updatePlayer(String id, @Valid PlayerRequest playerRequest) {
-        // TODO Auto-generated method stub
-        return PlayersApi.super.updatePlayer(id, playerRequest);
+        log.info("Received request to update player with ID {}: {}", id, playerRequest);
+        UpdatePlayerCommand command = UpdatePlayerCommand.of(id, playerRequest);
+        Player updated = updatePlayerService.update(command);
+        log.info("Player updated successfully: {}", updated);
+        return ResponseEntity.ok(PlayerResponseMapper.INSTANCE.toPlayerResponse(updated));
     }
 
 }

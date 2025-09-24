@@ -1,5 +1,7 @@
 package com.coomiix.admin.player.infrastructure.repository;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Repository;
 
 import com.coomiix.admin.player.domain.Player;
@@ -25,21 +27,15 @@ public class PlayerMongodbRepository implements PlayerRepository {
     }
 
     @Override
-    public Player findById(String id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findById'");
+    public Optional<Player> findById(String id) {
+        log.info("Finding player by ID in MongoDB: {}", id);
+        return mongoRepository.findById(id).map(PlayerDocumentMapper.INSTANCE::toPlayer);
     }
 
     @Override
     public void deleteById(String id) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
-    }
-
-    @Override
-    public Player update(Player player) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
     }
 
 }

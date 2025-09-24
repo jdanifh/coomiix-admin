@@ -45,4 +45,10 @@ public class Player {
         player.setMagicResistance(10L);
         return player;
     }
+
+    public void update(String name, String email, String classType) {
+        this.setName(name);
+        this.setEmail(new Email(email));
+        this.setClassType(classType);
+    }
 }

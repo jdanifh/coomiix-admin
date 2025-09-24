@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.coomiix.admin.model.ErrorResponse;
+import com.coomiix.admin.shared.domain.exceptions.ResourceNotFoundException;
 import com.coomiix.admin.shared.domain.exceptions.ValueNotValidException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,16 @@ import lombok.extern.slf4j.Slf4j;
 @ControllerAdvice
 @Slf4j
 public class ControllerExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.info("ResourceNotFoundException: {}, {}", ex.getMessage(), ex.getDetails());
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setCode(ex.getCode());
+        errorResponse.setMessage(ex.getMessage());
+        errorResponse.setDetails(ex.getDetails());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
 
     @ExceptionHandler(ValueNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValueNotValidException(ValueNotValidException ex) {
