@@ -2,6 +2,7 @@ package com.coomiix.admin.player.application.update;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,12 +22,18 @@ class UpdatePlayerServiceTest extends TestContainerTest {
     @Autowired
     private UpdatePlayerService updatePlayerService;
 
-    @Test
-    void shouldUpdatePlayerSuccessfully() {
+    private String playerId;
+
+    @BeforeEach
+    void setUp() {
         CreatePlayerCommand createCommand = new CreatePlayerCommand("John Doe", "john@example.com", "Warrior");
         Player saved = createPlayerService.create(createCommand);
+        this.playerId = saved.getId();
+    }
 
-        UpdatePlayerCommand command = new UpdatePlayerCommand(saved.getId(), "John Updated", "new.mail@example.com", "Mage");
+    @Test
+    void shouldUpdatePlayerSuccessfully() {
+        UpdatePlayerCommand command = new UpdatePlayerCommand(playerId, "John Updated", "new.mail@example.com", "Mage");
         Player result = updatePlayerService.update(command);
 
         assertNotNull(result);
@@ -51,10 +58,7 @@ class UpdatePlayerServiceTest extends TestContainerTest {
 
     @Test
     void shouldThrowExceptionForInvalidEmail() {
-        CreatePlayerCommand createCommand = new CreatePlayerCommand("John Doe", "john@example.com", "Warrior");
-        Player saved = createPlayerService.create(createCommand);
-
-        UpdatePlayerCommand command = new UpdatePlayerCommand(saved.getId(), "John Updated", "invalid-email", "Mage");
+        UpdatePlayerCommand command = new UpdatePlayerCommand(playerId, "John Updated", "invalid-email", "Mage");
         ValueNotValidException exception = assertThrows(ValueNotValidException.class, () -> {
             updatePlayerService.update(command);
         });
@@ -63,10 +67,7 @@ class UpdatePlayerServiceTest extends TestContainerTest {
 
     @Test
     void shouldThrowExceptionForEmptyEmail() {
-        CreatePlayerCommand createCommand = new CreatePlayerCommand("John Doe", "john@example.com", "Warrior");
-        Player saved = createPlayerService.create(createCommand);
-
-        UpdatePlayerCommand command = new UpdatePlayerCommand(saved.getId(), "John Updated", "", "Mage");
+        UpdatePlayerCommand command = new UpdatePlayerCommand(playerId, "John Updated", "", "Mage");
         ValueNotValidException exception = assertThrows(ValueNotValidException.class, () -> {
             updatePlayerService.update(command);
         });
