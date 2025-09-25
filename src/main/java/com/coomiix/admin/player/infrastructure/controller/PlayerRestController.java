@@ -10,6 +10,7 @@ import com.coomiix.admin.model.PlayerRequest;
 import com.coomiix.admin.model.PlayerResponse;
 import com.coomiix.admin.player.application.create.CreatePlayerCommand;
 import com.coomiix.admin.player.application.create.CreatePlayerService;
+import com.coomiix.admin.player.application.delete.DeletePlayerService;
 import com.coomiix.admin.player.application.update.UpdatePlayerCommand;
 import com.coomiix.admin.player.application.update.UpdatePlayerService;
 import com.coomiix.admin.player.domain.Player;
@@ -27,6 +28,7 @@ public class PlayerRestController implements PlayersApi {
 
     private final CreatePlayerService createPlayerService;
     private final UpdatePlayerService updatePlayerService;
+    private final DeletePlayerService deletePlayerService;
 
     @Override
     public ResponseEntity<PlayerResponse> createPlayer(@Valid PlayerRequest playerRequest) {
@@ -39,8 +41,10 @@ public class PlayerRestController implements PlayersApi {
 
     @Override
     public ResponseEntity<Void> deletePlayer(String id) {
-        // TODO Auto-generated method stub
-        return PlayersApi.super.deletePlayer(id);
+        log.info("Received request to delete player with ID: {}", id);
+        deletePlayerService.deleteById(id);
+        log.info("Player with ID {} deleted successfully", id);
+        return ResponseEntity.noContent().build();
     }
 
     @Override

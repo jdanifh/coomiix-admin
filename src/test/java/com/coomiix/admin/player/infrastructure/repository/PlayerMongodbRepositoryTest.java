@@ -27,4 +27,43 @@ class PlayerMongodbRepositoryTest extends TestContainerTest {
         assertEquals(player.getClassType(), saved.getClassType());
         assertEquals(1, saved.getLevel());
     }
+
+    @Test
+    void shouldFindPlayerById() {
+        Player player = Player.create("Test User", "test@example.com", "Warrior");
+        Player saved = playerMongodbRepository.save(player);
+        assertNotNull(saved);
+        assertNotNull(saved.getId());
+        assertTrue(playerMongodbRepository.findById(saved.getId()).isPresent());
+    }
+
+    @Test
+    void shouldNotFindNonExistentPlayerById() {
+        assertFalse(playerMongodbRepository.findById("non-existent-id").isPresent());
+    }
+
+    @Test
+    void sholdCheckPlayerExistsById() {
+        Player player = Player.create("Test User", "test@example.com", "Warrior");
+        Player saved = playerMongodbRepository.save(player);
+        assertNotNull(saved);
+        assertNotNull(saved.getId());
+        assertTrue(playerMongodbRepository.existsById(saved.getId()));
+    }
+
+    @Test
+    void shouldCheckPlayerDoesNotExistById() {
+        assertFalse(playerMongodbRepository.existsById("non-existent-id"));
+    }
+
+    @Test
+    void shouldDeletePlayerById() {
+        Player player = Player.create("Test User", "test@example.com", "Warrior");
+        Player saved = playerMongodbRepository.save(player);
+        assertNotNull(saved);
+        assertNotNull(saved.getId());
+        playerMongodbRepository.deleteById(saved.getId());
+        assertFalse(playerMongodbRepository.existsById(saved.getId()));
+    }
+
 }

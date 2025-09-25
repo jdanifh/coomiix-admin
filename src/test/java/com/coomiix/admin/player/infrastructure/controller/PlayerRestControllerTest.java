@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -130,4 +131,36 @@ class PlayerRestControllerTest extends TestContainerTest {
                 .andExpect(jsonPath("$.message").value("Player with ID " + nonExistentId + " not found"));
     }
 
+    @Test
+    @WithMockUser
+    void shouldDeletePlayerEndpoint() throws Exception {
+        PlayerRequest request = new PlayerRequest();
+        request.setName("David Jones");
+        request.setEmail("david.jones@example.com");
+        request.setClassType("Mage");
+
+        String responseContent = mockMvc.perform(post("/api/v1/players").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andReturn().getResponse().getContentAsString();
+
+        String playerId = objectMapper.readTree(responseContent).get("id").asText();
+
+        mockMvc.perform(delete("/api/v1/players/{id}", playerId).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnNotFoundForDeletingNonExistentPlayer() throws Exception {
+        String nonExistentId = "non-existent-id";
+        mockMvc.perform(delete("/api/v1/players/{id}", nonExistentId).with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Player not found with ID: " + nonExistentId));
+    }
 }

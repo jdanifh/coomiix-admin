@@ -6,6 +6,7 @@ public interface PlayerRepository {
 
     public Player save(Player player);
     public Optional<Player> findById(String id);
+    public boolean existsById(String id);
     public void deleteById(String id);
 
 }

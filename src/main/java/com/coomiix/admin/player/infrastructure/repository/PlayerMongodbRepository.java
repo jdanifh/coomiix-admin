@@ -33,9 +33,16 @@ public class PlayerMongodbRepository implements PlayerRepository {
     }
 
     @Override
+    public boolean existsById(String id) {
+        log.info("Checking existence of player by ID in MongoDB: {}", id);
+        return mongoRepository.existsById(id);
+    }
+
+    @Override
     public void deleteById(String id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
+        log.info("Deleting player by ID in MongoDB: {}", id);
+        mongoRepository.deleteById(id);
+        log.info("Player with ID {} deleted successfully from MongoDB", id);
     }
 
 }
