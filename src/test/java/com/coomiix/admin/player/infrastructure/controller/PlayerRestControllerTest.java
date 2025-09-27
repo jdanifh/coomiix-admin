@@ -13,6 +13,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -162,5 +163,95 @@ class PlayerRestControllerTest extends TestContainerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("Player not found with ID: " + nonExistentId));
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnPlayerById() throws Exception {
+        PlayerRequest request = new PlayerRequest();
+        request.setName("David Jones");
+        request.setEmail("jones@example.com");
+        request.setClassType("Mage");
+
+        String responseContent = mockMvc.perform(post("/api/v1/players").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
+                .andReturn().getResponse().getContentAsString();
+        
+        String playerId = objectMapper.readTree(responseContent).get("id").asText();
+        mockMvc.perform(get("/api/v1/players/{id}", playerId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(playerId))
+                .andExpect(jsonPath("$.name").value(request.getName()))
+                .andExpect(jsonPath("$.email").value(request.getEmail()))
+                .andExpect(jsonPath("$.class_type").value(request.getClassType()))
+                .andExpect(jsonPath("$.level").value("1"))
+                .andExpect(jsonPath("$.created_at").exists())
+                .andExpect(jsonPath("$.updated_at").exists());
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnNotFoundForGettingNonExistentPlayer() throws Exception {
+        String nonExistentId = "non-existent-id";
+        mockMvc.perform(get("/api/v1/players/{id}", nonExistentId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("Player with ID " + nonExistentId + " not found"));
+    }
+
+    @Test
+    @WithMockUser
+    void shouldSearchPlayers() throws Exception {
+        PlayerRequest request = new PlayerRequest();
+        request.setName("Alice Wonderland");
+        request.setEmail("alice@example.com");
+        request.setClassType("Warrior");
+        mockMvc.perform(post("/api/v1/players").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists());
+
+        mockMvc.perform(get("/api/v1/players")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "name,asc")
+                .param("name", "Alice").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].name").value("Alice Wonderland"))
+                .andExpect(jsonPath("$.content[0].email").value("alice@example.com"))
+                .andExpect(jsonPath("$.content[0].class_type").value("Warrior"))
+                .andExpect(jsonPath("$.content[0].level").value("1"))
+                .andExpect(jsonPath("$.content[0].created_at").exists())
+                .andExpect(jsonPath("$.content[0].updated_at").exists())
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.total_elements").value(1))
+                .andExpect(jsonPath("$.total_pages").value(1));
+    }
+
+    @Test
+    @WithMockUser
+    void shouldReturnEmptyPageWhenNoPlayersMatchSearch() throws Exception {
+        mockMvc.perform(get("/api/v1/players")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "name,asc")
+                .param("name", "NonExistentName").with(csrf())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content").isEmpty())
+                .andExpect(jsonPath("$.page").value(0))
+                .andExpect(jsonPath("$.size").value(10))
+                .andExpect(jsonPath("$.total_elements").value(0))
+                .andExpect(jsonPath("$.total_pages").value(0));
     }
 }

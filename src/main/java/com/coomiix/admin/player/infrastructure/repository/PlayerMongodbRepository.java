@@ -1,7 +1,14 @@
 package com.coomiix.admin.player.infrastructure.repository;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import com.coomiix.admin.player.domain.Player;
@@ -15,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PlayerMongodbRepository implements PlayerRepository {
 
+    private final MongoTemplate mongoTemplate;
     private final PlayerDocumentRepository mongoRepository;
 
     @Override
@@ -43,6 +51,29 @@ public class PlayerMongodbRepository implements PlayerRepository {
         log.info("Deleting player by ID in MongoDB: {}", id);
         mongoRepository.deleteById(id);
         log.info("Player with ID {} deleted successfully from MongoDB", id);
+    }
+
+    @Override
+    public Page<Player> search(String name, String email, String classType, Pageable pageable) {
+        log.info("Searching players in MongoDB with name: {}, email: {}, classType: {}, pageable: {}", name, email, classType, pageable);
+        Query query = new Query().with(pageable);
+
+        if (name != null && !name.isEmpty()) {
+            query.addCriteria(Criteria.where("name").regex(name, "i"));
+        }
+        if (email != null && !email.isEmpty()) {
+            query.addCriteria(Criteria.where("email.value").is(email));
+        }
+        if (classType != null && !classType.isEmpty()) {
+            query.addCriteria(Criteria.where("classType").is(classType));
+        }
+
+        List<PlayerDocument> documents = mongoTemplate.find(query, PlayerDocument.class);
+        long total = mongoTemplate.count(query.skip(-1).limit(-1), PlayerDocument.class);
+        Page<PlayerDocument> page = new PageImpl<>(documents, pageable, total);
+
+        log.info("Found {} players matching criteria in MongoDB", page.getTotalElements());
+        return page.map(PlayerDocumentMapper.INSTANCE::toPlayer);
     }
 
 }

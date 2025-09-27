@@ -1,5 +1,9 @@
 package com.coomiix.admin.player.infrastructure.controller;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,6 +15,8 @@ import com.coomiix.admin.model.PlayerResponse;
 import com.coomiix.admin.player.application.create.CreatePlayerCommand;
 import com.coomiix.admin.player.application.create.CreatePlayerService;
 import com.coomiix.admin.player.application.delete.DeletePlayerService;
+import com.coomiix.admin.player.application.search.SearchPlayerQuery;
+import com.coomiix.admin.player.application.search.SearchPlayerService;
 import com.coomiix.admin.player.application.update.UpdatePlayerCommand;
 import com.coomiix.admin.player.application.update.UpdatePlayerService;
 import com.coomiix.admin.player.domain.Player;
@@ -29,6 +35,7 @@ public class PlayerRestController implements PlayersApi {
     private final CreatePlayerService createPlayerService;
     private final UpdatePlayerService updatePlayerService;
     private final DeletePlayerService deletePlayerService;
+    private final SearchPlayerService searchPlayerService;
 
     @Override
     public ResponseEntity<PlayerResponse> createPlayer(@Valid PlayerRequest playerRequest) {
@@ -49,15 +56,23 @@ public class PlayerRestController implements PlayersApi {
 
     @Override
     public ResponseEntity<PlayerResponse> getPlayerById(String id) {
-        // TODO Auto-generated method stub
-        return PlayersApi.super.getPlayerById(id);
+        log.info("Received request to get player with ID: {}", id);
+        Player player = searchPlayerService.findById(id);
+        log.info("Player found: {}", player);
+        return ResponseEntity.ok(PlayerResponseMapper.INSTANCE.toPlayerResponse(player));
     }
 
     @Override
     public ResponseEntity<PlayerPage> searchPlayers(@Min(0) @Valid Integer page, @Min(1) @Max(100) @Valid Integer size,
             @Valid String sort, @Valid String name, @Valid String email, @Valid String classType) {
-        // TODO Auto-generated method stub
-        return PlayersApi.super.searchPlayers(page, size, sort, name, email, classType);
+        log.info("Received request to search players with page: {}, size: {}, sort: {}, name: {}, email: {}, classType: {}",
+                 page, size, sort, name, email, classType);
+        SearchPlayerQuery query = new SearchPlayerQuery(name, email, classType);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+        Page<Player> players = searchPlayerService.searchPlayers(query, pageable);
+        log.info("Players found: {}", players.getTotalElements());
+        PlayerPage playerPage = PlayerPageMapper.INSTANCE.toPlayerPage(players);
+        return ResponseEntity.ok(playerPage);
     }
 
     @Override
