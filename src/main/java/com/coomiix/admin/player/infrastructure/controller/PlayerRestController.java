@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.coomiix.admin.api.PlayersApi;
@@ -38,6 +39,7 @@ public class PlayerRestController implements PlayersApi {
     private final SearchPlayerService searchPlayerService;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerResponse> createPlayer(@Valid PlayerRequest playerRequest) {
         log.info("Received request to create player: {}", playerRequest);
         CreatePlayerCommand command = CreatePlayerCommand.of(playerRequest);
@@ -47,6 +49,7 @@ public class PlayerRestController implements PlayersApi {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deletePlayer(String id) {
         log.info("Received request to delete player with ID: {}", id);
         deletePlayerService.deleteById(id);
@@ -55,6 +58,7 @@ public class PlayerRestController implements PlayersApi {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerResponse> getPlayerById(String id) {
         log.info("Received request to get player with ID: {}", id);
         Player player = searchPlayerService.findById(id);
@@ -76,6 +80,7 @@ public class PlayerRestController implements PlayersApi {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlayerResponse> updatePlayer(String id, @Valid PlayerRequest playerRequest) {
         log.info("Received request to update player with ID {}: {}", id, playerRequest);
         UpdatePlayerCommand command = UpdatePlayerCommand.of(id, playerRequest);

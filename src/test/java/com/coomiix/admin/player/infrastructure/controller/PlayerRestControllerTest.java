@@ -17,11 +17,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @AutoConfigureMockMvc
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class PlayerRestControllerTest extends TestContainerTest {
+
+    private static final String PLAYERS_URL = "/api/v1/players";
 
     @Autowired
     private MockMvc mockMvc;
@@ -29,14 +30,14 @@ class PlayerRestControllerTest extends TestContainerTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldCreatePlayerEndpoint() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("David Jones");
         request.setEmail("david.jones@example.com");
         request.setClassType("Mage");
 
-        mockMvc.perform(post("/api/v1/players").with(csrf())
+        mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -50,14 +51,14 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnBadRequestForInvalidEmail() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("Invalid Email");
         request.setEmail("not-an-email");
         request.setClassType("Mage");
 
-        mockMvc.perform(post("/api/v1/players").with(csrf())
+        mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -66,14 +67,14 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnBadRequestForEmptyEmail() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("Empty Email");
         request.setEmail("");
         request.setClassType("Mage");
 
-        mockMvc.perform(post("/api/v1/players").with(csrf())
+        mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -82,14 +83,14 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldUpdatePlayerEndpoint() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("David Jones");
         request.setEmail("david.jones@example.com");
         request.setClassType("Mage");
 
-        String responseContent = mockMvc.perform(post("/api/v1/players").with(csrf())
+        String responseContent = mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -102,7 +103,7 @@ class PlayerRestControllerTest extends TestContainerTest {
         updateRequest.setEmail("new.mail@example.com");
         updateRequest.setClassType("Warrior");
 
-        mockMvc.perform(put("/api/v1/players/{id}", playerId).with(csrf())
+        mockMvc.perform(put(PLAYERS_URL+"/{id}", playerId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
@@ -116,7 +117,7 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnNotFoundForUpdatingNonExistentPlayer() throws Exception {
         String nonExistentId = "non-existent-id";
         PlayerRequest updateRequest = new PlayerRequest();
@@ -124,7 +125,7 @@ class PlayerRestControllerTest extends TestContainerTest {
         updateRequest.setEmail("no.mail@example.com");
         updateRequest.setClassType("Warrior");
 
-        mockMvc.perform(put("/api/v1/players/{id}", nonExistentId).with(csrf())
+        mockMvc.perform(put(PLAYERS_URL+"/{id}", nonExistentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isNotFound())
@@ -133,14 +134,14 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldDeletePlayerEndpoint() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("David Jones");
         request.setEmail("david.jones@example.com");
         request.setClassType("Mage");
 
-        String responseContent = mockMvc.perform(post("/api/v1/players").with(csrf())
+        String responseContent = mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -149,16 +150,16 @@ class PlayerRestControllerTest extends TestContainerTest {
 
         String playerId = objectMapper.readTree(responseContent).get("id").asText();
 
-        mockMvc.perform(delete("/api/v1/players/{id}", playerId).with(csrf())
+        mockMvc.perform(delete(PLAYERS_URL+"/{id}", playerId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnNotFoundForDeletingNonExistentPlayer() throws Exception {
         String nonExistentId = "non-existent-id";
-        mockMvc.perform(delete("/api/v1/players/{id}", nonExistentId).with(csrf())
+        mockMvc.perform(delete(PLAYERS_URL+"/{id}", nonExistentId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
@@ -166,14 +167,14 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnPlayerById() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("David Jones");
         request.setEmail("jones@example.com");
         request.setClassType("Mage");
 
-        String responseContent = mockMvc.perform(post("/api/v1/players").with(csrf())
+        String responseContent = mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -181,7 +182,7 @@ class PlayerRestControllerTest extends TestContainerTest {
                 .andReturn().getResponse().getContentAsString();
         
         String playerId = objectMapper.readTree(responseContent).get("id").asText();
-        mockMvc.perform(get("/api/v1/players/{id}", playerId)
+        mockMvc.perform(get(PLAYERS_URL+"/{id}", playerId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(playerId))
@@ -194,10 +195,10 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldReturnNotFoundForGettingNonExistentPlayer() throws Exception {
         String nonExistentId = "non-existent-id";
-        mockMvc.perform(get("/api/v1/players/{id}", nonExistentId)
+        mockMvc.perform(get(PLAYERS_URL+"/{id}", nonExistentId)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value("RESOURCE_NOT_FOUND"))
@@ -205,23 +206,23 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(roles = "ADMIN")
     void shouldSearchPlayers() throws Exception {
         PlayerRequest request = new PlayerRequest();
         request.setName("Alice Wonderland");
         request.setEmail("alice@example.com");
         request.setClassType("Warrior");
-        mockMvc.perform(post("/api/v1/players").with(csrf())
+        mockMvc.perform(post(PLAYERS_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").exists());
 
-        mockMvc.perform(get("/api/v1/players")
+        mockMvc.perform(get(PLAYERS_URL)
                 .param("page", "0")
                 .param("size", "10")
                 .param("sort", "name,asc")
-                .param("name", "Alice").with(csrf())
+                .param("name", "Alice")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -238,13 +239,12 @@ class PlayerRestControllerTest extends TestContainerTest {
     }
 
     @Test
-    @WithMockUser
     void shouldReturnEmptyPageWhenNoPlayersMatchSearch() throws Exception {
-        mockMvc.perform(get("/api/v1/players")
+        mockMvc.perform(get(PLAYERS_URL)
                 .param("page", "0")
                 .param("size", "10")
                 .param("sort", "name,asc")
-                .param("name", "NonExistentName").with(csrf())
+                .param("name", "NonExistentName")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -253,5 +253,41 @@ class PlayerRestControllerTest extends TestContainerTest {
                 .andExpect(jsonPath("$.size").value(10))
                 .andExpect(jsonPath("$.total_elements").value(0))
                 .andExpect(jsonPath("$.total_pages").value(0));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldDenyAccessToCreatePlayerForNonAdminUser() throws Exception {
+        PlayerRequest request = new PlayerRequest();
+        request.setName("Unauthorized Create");
+        request.setEmail("unauthorized@example.com");
+        request.setClassType("Mage");
+
+        mockMvc.perform(post(PLAYERS_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldDenyAccessToUpdatePlayerForNonAdminUser() throws Exception {
+        PlayerRequest request = new PlayerRequest();
+        request.setName("Unauthorized Update");
+        request.setEmail("unauthorized@example.com");
+        request.setClassType("Mage");
+
+        mockMvc.perform(put(PLAYERS_URL+"/{id}", "some-id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldDenyAccessToDeletePlayerForNonAdminUser() throws Exception {
+        mockMvc.perform(delete(PLAYERS_URL+"/{id}", "some-id")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 }
