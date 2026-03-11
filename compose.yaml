@@ -62,7 +62,7 @@ services:
       - "traefik.http.routers.keycloak.entrypoints=web"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
   rabbitmq:
-    image: 'rabbitmq:latest'
+    image: 'rabbitmq::3.11.16-management'
     environment:
       - 'RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}'
       - 'RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}'

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coomiix-config
+  namespace: coomiix
+data:
+  keycloak-uri: "http://auth.coomiix.local"
+  keycloak-client-id: "coomiix-admin"
+  rabbitmq-host: "rabbitmq-service"
+  rabbitmq-port: "5672"
+

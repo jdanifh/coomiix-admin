@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coomiix-ingress
+  namespace: coomiix
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: api.coomiix.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: coomiix-admin-service
+            port:
+              number: 8080
+  - host: auth.coomiix.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: keycloak-service
+            port:
+              number: 8080

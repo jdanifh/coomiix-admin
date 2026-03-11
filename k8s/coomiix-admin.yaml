@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coomiix-admin-deploy
+  namespace: coomiix
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: coomiix-admin
+  template:
+    metadata:
+      labels:
+        app: coomiix-admin
+    spec:
+      containers:
+        - name: coomiix-admin
+          image: coomiix-admin:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /api/health/live
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/health/ready
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: coomiix-secret
+                  key: mongodb-uri
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: coomiix-config
+                  key: rabbitmq-host
+            - name: RABBITMQ_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: coomiix-config
+                  key: rabbitmq-port
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: coomiix-secret
+                  key: rabbitmq-user
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: coomiix-secret
+                  key: rabbitmq-password
+            - name: KEYCLOAK_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: coomiix-config
+                  key: keycloak-uri
+            - name: KEYCLOAK_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: coomiix-config
+                  key: keycloak-client-id
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: coomiix-secret
+                  key: keycloak-client-secret
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coomiix-admin-service
+  namespace: coomiix
+spec:
+  selector:
+    app: coomiix-admin
+  ports:
+    - port: 8080
+      targetPort: 8080
+
+

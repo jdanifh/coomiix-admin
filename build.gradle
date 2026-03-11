@@ -18,6 +18,9 @@ repositories {
 	mavenCentral()
 }
 
+configurations.all {
+}
+
 dependencies {
     compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -41,9 +44,9 @@ dependencies {
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation "org.springframework.security:spring-security-test"
     testImplementation "org.mockito:mockito-core"
-    testImplementation "org.testcontainers:junit-jupiter"
-    testImplementation "org.testcontainers:mongodb"
-    testImplementation "org.testcontainers:rabbitmq"
+    testImplementation "org.testcontainers:junit-jupiter:1.21.4"
+    testImplementation "org.testcontainers:mongodb:1.21.4"
+    testImplementation "org.testcontainers:rabbitmq:1.21.4"
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
 }
 
